@@ -6,28 +6,6 @@ from db import items, stores
 
 app = Flask(__name__)
 
-# stores = [
-#     {
-#         "id": 12,
-#         "name": "My Store",
-#         "items": [
-#             {
-#                 "name": "Chair",
-#                 "price": "12"
-#             },
-#             {
-#                 "name": "Table",
-#                 "price": "200"
-#             },
-#             {
-#                 "name": "Gazebo",
-#                 "price": "100"
-#             }  
-#         ]
-        
-#     }
-# ]
-
 
 
 @app.get("/store")
@@ -41,7 +19,7 @@ def get_store(store_id):
     except KeyError:
         abort(404, message="store not found")
 
-@app.post("/store")
+@app.post("/store") # we first need  to create a store, we we must include a name of the store in the payload eg { "name" : "Kingsavers"}
 def create_store():
     store_data = request.get_json()
     
@@ -57,7 +35,7 @@ def create_store():
     stores[store_id] = store
     return store, 201
 
-@app.post("/item")
+@app.post("/item") # In order to create an item, we need a store id, which would be generated from the /post/store. we must pass in the store id the body of the payload eg {"name" : "", "price": "", "store_id": ""}
 def create_item():
     item_data = request.json
     
@@ -97,8 +75,62 @@ def get_item(item_id):
         return items[item_id]
     except KeyError:
         abort(404, message="Item not found")
+        
+
+@app.delete("/item/<string:item_id>") # using id to delete items to the correct store
+def del_item(item_id):
+    
+    try:
+        del items[item_id]
+        return {"message": "Item  has been deleted"}
+    except KeyError:
+        abort(404, message="Item not found")
 
 
+@app.delete("/store/<string:store_id>")
+def del_store(store_id):
+    
+    try:
+        del stores[store_id]
+        return {"message": "store has been deleted  has been deleted"}
+    except KeyError:
+        abort(404, message="Store not found")
+        
+        
+
+
+
+# app.put("/item/<string:item_id>")
+# def edit_item(item_id):
+#     item_data = request.get_json()
+#     if "price" not in item_data or "name" not in item_data:
+#         abort(400, message="Bad request. Ensure 'price', and'name' are included in the request")
+    
+#     try:
+#         item = items[item_id]
+#         item.update(item_data)  # Use update method for dictionaries
+        
+#         return item
+#     except KeyError:
+#         abort(404, message="Item not found")
+
+
+@app.route("/item/<string:item_id>", methods=['PUT']) # new route for put as end url is the same as delete
+def edit_item(item_id):
+    item_data = request.get_json()
+    if "price" not in item_data or "name" not in item_data:
+        abort(400, description="Bad request. Ensure 'price' and 'name' are included in the request.")
+    
+    try:
+        item = items[item_id]
+        item.update(item_data)  # Use update method for dictionaries
+        
+        return item  # Return as JSON response
+    except KeyError:
+        abort(404, description="Item not found")
+        
+    
+    
 
 
 # @app.post("/store/<int:id>/item") # using id to add items to the correct store
